@@ -22,6 +22,41 @@ function bodyDataHas(propertyName) {
   };
 }
 
+function dishesPropertyIsValid(req, res, next) {
+  const { data: { dishes } = {} } = req.body;
+
+  // Check if 'dishes' property is missing or not an array
+  if (!Array.isArray(dishes)) {
+    return next({
+      status: 400,
+      message: "The 'dishes' property must be an array.",
+    });
+  }
+
+  // Check each dish in the 'dishes' array
+  for (const dish of dishes) {
+    // Check if a dish is missing quantity
+    if (!dish.quantity) {
+      return next({
+        status: 400,
+        message: "Each dish must have a 'quantity' property.",
+      });
+    }
+
+    // Check if a dish quantity is not an integer or is zero
+    if (!Number.isInteger(dish.quantity) || dish.quantity <= 0) {
+      return next({
+        status: 400,
+        message:
+          "The 'quantity' property of each dish must be a positive integer.",
+      });
+    }
+  }
+
+  // If all checks pass, move to the next middleware
+  next();
+}
+
 function list(req, res) {
   const filteredOrders = orders.filter(
     (order) =>
@@ -75,11 +110,11 @@ function update(req, res) {
 
   // Update the order
 
-  (deliverTo = deliverTo),
-    (mobileNumber = mobileNumber),
-    (status = status),
-    (dishes = dishes),
-    res.json({ data: order });
+  deliverTo = deliverTo;
+  mobileNumber = mobileNumber;
+  status = status;
+  dishes = dishes;
+  res.json({ data: order });
 }
 
 function read(req, res, next) {
@@ -102,6 +137,7 @@ module.exports = {
     bodyDataHas("mobileNumber"),
     bodyDataHas("status"),
     bodyDataHas("dishes"),
+    dishesPropertyIsValid,
     create,
   ],
   list,
@@ -112,6 +148,7 @@ module.exports = {
     bodyDataHas("mobileNumber"),
     bodyDataHas("status"),
     bodyDataHas("dishes"),
+    dishesPropertyIsValid,
     update,
   ],
   orderExists,
