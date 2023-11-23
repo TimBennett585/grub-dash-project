@@ -44,19 +44,19 @@ function orderExists(req, res, next) {
 }
 
 function create(req, res) {
-    const { data: { deliverTo, mobileNumber, status, dishes } = {} } = req.body;
-    const newOrder = {
-      id: ++nextId, // Increment last id then assign as the current ID
-      deliverTo: deliverTo,
-      mobileNumber: mobileNumber,
-      status: status,
-      dishes: dishes,
-    };
-    orders.push(newOrder);
-    res.status(201).json({ data: newOrder });
-  }
-  
-  /* function orderExists(req, res, next) {
+  const { data: { deliverTo, mobileNumber, status, dishes } = {} } = req.body;
+  const newOrder = {
+    id: nextId(), // Increment last id then assign as the current ID
+    deliverTo: deliverTo,
+    mobileNumber: mobileNumber,
+    status: status,
+    dishes: dishes,
+  };
+  orders.push(newOrder);
+  res.status(201).json({ data: newOrder });
+}
+
+/* function orderExists(req, res, next) {
     const { orderId } = req.params;
     const foundOrder = orders.find((order) => order.id === Number(orderId));
     if (foundOrder) {
@@ -68,20 +68,19 @@ function create(req, res) {
       message: `Order id not found: ${orderId}`,
     });
   } */
-  
-  function update(req, res) {
-    const order = res.locals.order;
-    const { data: { deliverTo, mobileNumber, status, dishes } = {} } = req.body;
-  
-    // Update the order
 
-    deliverTo= deliverTo,
-      mobileNumber= mobileNumber,
-      status= status,
-      dishes= dishes,
-  
-    res.json({ data: dish });
-  }
+function update(req, res) {
+  const order = res.locals.order;
+  const { data: { deliverTo, mobileNumber, status, dishes } = {} } = req.body;
+
+  // Update the order
+
+  (deliverTo = deliverTo),
+    (mobileNumber = mobileNumber),
+    (status = status),
+    (dishes = dishes),
+    res.json({ data: order });
+}
 
 function read(req, res, next) {
   res.json({ data: res.locals.order });
@@ -98,8 +97,22 @@ function destroy(req, res) {
 }
 
 module.exports = {
+  create: [
+    bodyDataHas("deliverTo"),
+    bodyDataHas("mobileNumber"),
+    bodyDataHas("status"),
+    bodyDataHas("dishes"),
+    create,
+  ],
   list,
   read: [orderExists, read],
   delete: [orderExists, destroy],
+  update: [
+    bodyDataHas("deliverTo"),
+    bodyDataHas("mobileNumber"),
+    bodyDataHas("status"),
+    bodyDataHas("dishes"),
+    update,
+  ],
   orderExists,
 };

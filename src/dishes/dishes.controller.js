@@ -31,11 +31,25 @@ function bodyDataHas(propertyName) {
   };
 }
 
+function priceIsValidNumber(req, res, next) {
+  const { data: { price } = {} } = req.body;
+  if (price <= 0 || !Number.isInteger(price)) {
+    return next({
+      status: 400,
+      message: `price requires a valid number`,
+    });
+  }
+  next();
+}
+
 function create(req, res) {
-  const { data: { description } = {} } = req.body;
+  const { data: { name, description, price, image_url } = {} } = req.body;
   const newdish = {
-    id: ++nextId, // Increment last id then assign as the current ID
+    id: nextId(), // Increment last id then assign as the current ID
+    name: name,
     description: description,
+    price: price,
+    image_url: image_url,
   };
   dishes.push(newdish);
   res.status(201).json({ data: newdish });
@@ -90,6 +104,7 @@ module.exports = {
     bodyDataHas("description"),
     bodyDataHas("price"),
     bodyDataHas("image_url"),
+    priceIsValidNumber,
     create,
   ],
   list,
@@ -100,6 +115,7 @@ module.exports = {
     bodyDataHas("description"),
     bodyDataHas("price"),
     bodyDataHas("image_url"),
+    priceIsValidNumber,
     update,
   ],
   dishExists,
