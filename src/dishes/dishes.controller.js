@@ -15,8 +15,7 @@ function list(req, res) {
   });
 }
 
-// let lastdishId = dishes.reduce((maxId, dish) => Math.max(maxId, dish.id), 0);
-
+//validates that the dish has all needed properties
 function bodyDataHas(propertyName) {
   return function (req, res, next) {
     const { data = ({ propertyName } = {}) } = req.body;
@@ -31,6 +30,7 @@ function bodyDataHas(propertyName) {
   };
 }
 
+//validates that the price property is a valid, positive integer
 function priceIsValidNumber(req, res, next) {
   const { data: { price } = {} } = req.body;
   if (price <= 0 || !Number.isInteger(price)) {
@@ -42,6 +42,24 @@ function priceIsValidNumber(req, res, next) {
   next();
 }
 
+// validates that the ID in the request body matches the ID provided in the route
+function matchDish(req, res, next) {
+  const { dishId } = req.params;
+  const { data: { id } = {} } = req.body;
+  if (id) {
+    if (id !== dishId) {
+      next({
+        status: 400,
+        message: `Dish id does not match route id. Dish: ${id}, Route: ${dishId}`,
+      });
+    }
+    next();
+  } else {
+    next();
+  }
+}
+
+//creates a new dish with the necessary structure, pushes it into the array and sends the data
 function create(req, res) {
   const { data: { name, description, price, image_url } = {} } = req.body;
   const newdish = {
@@ -55,8 +73,10 @@ function create(req, res) {
   res.status(201).json({ data: newdish });
 }
 
+//verifies that a dish with the provided ID exists
 function dishExists(req, res, next) {
   const { dishId } = req.params;
+  console.log(dishId);
   const foundDish = dishes.find((dish) => dish.id === Number(dishId));
   if (foundDish) {
     res.locals.dish = foundDish;
@@ -68,11 +88,12 @@ function dishExists(req, res, next) {
   });
 }
 
+//updates an existing dish with new information and then sends the data
 function update(req, res) {
   const dish = res.locals.dish;
   const { data: { name, description, price, image_url } = {} } = req.body;
 
-  // Update the dish
+  // Update the dish with the appropriate info
   dish.name = name;
   dish.description = description;
   dish.price = price;
@@ -81,21 +102,9 @@ function update(req, res) {
   res.json({ data: dish });
 }
 
+//shows the data for an individual dish
 function read(req, res, next) {
   res.json({ data: res.locals.dish });
-  next();
-}
-
-function addOrder(req, res) {
-  const newOrder = {
-    id: orders.length + 1,
-    dishId: Number(req.params.dishId),
-    time: Date.now(),
-  };
-
-  orders.push(newOrder);
-
-  res.status(201).json({ data: newOrder });
 }
 
 module.exports = {
@@ -111,6 +120,7 @@ module.exports = {
   read: [dishExists, read],
   update: [
     dishExists,
+    matchDish,
     bodyDataHas("name"),
     bodyDataHas("description"),
     bodyDataHas("price"),
