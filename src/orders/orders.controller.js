@@ -32,17 +32,25 @@ function dishesPropertyIsValid(req, res, next) {
   if (!Array.isArray(dishes)) {
     return next({
       status: 400,
-      message: "The 'dishes' property must be an array.",
+      message: "Order must include at least one dish",
+    });
+  }
+
+  // Check if 'dishes' array is empty
+  if (dishes.length === 0) {
+    return next({
+      status: 400,
+      message: "Order must include at least one dish",
     });
   }
 
   // Check each dish in the 'dishes' array
-  for (const dish of dishes) {
+  dishes.forEach((dish, index) => {
     // Check if a dish is missing quantity
     if (!dish.quantity) {
       return next({
         status: 400,
-        message: "Each dish must have a 'quantity' property.",
+        message: `Dish ${index} must have a 'quantity' property.`,
       });
     }
 
@@ -50,11 +58,10 @@ function dishesPropertyIsValid(req, res, next) {
     if (!Number.isInteger(dish.quantity) || dish.quantity <= 0) {
       return next({
         status: 400,
-        message:
-          "The 'quantity' property of each dish must be a positive integer.",
+        message: `Dish ${index} must have a quantity that is an integer greater than 0.`,
       });
     }
-  }
+  });
 
   // If all checks pass, move to the next middleware
   next();
@@ -71,8 +78,8 @@ function list(req, res) {
 
 //verifies that an order with the provided ID actually exists
 function orderExists(req, res, next) {
-  const { orderId } = req.params.orderId;
-  const foundOrder = orders.find((order) => order.id === Number(orderId));
+  const { orderId } = req.params;
+  const foundOrder = orders.find((order) => order.id === orderId);
   if (foundOrder) {
     res.locals.order = foundOrder;
     return next();
@@ -152,14 +159,13 @@ function create(req, res) {
 //updates an existing order and sends the new data
 function update(req, res) {
   const order = res.locals.order;
-  const { data: { deliverTo, mobileNumber, status, dishes } = {} } = req.body;
+  const { data: { deliverTo, mobileNumber, dishes } = {} } = req.body;
 
   // Update the order
 
-  deliverTo = deliverTo;
-  mobileNumber = mobileNumber;
-  status = status;
-  dishes = dishes;
+  order.deliverTo = deliverTo;
+  order.mobileNumber = mobileNumber;
+  order.dishes = dishes;
   res.json({ data: order });
 }
 
@@ -171,7 +177,7 @@ function read(req, res, next) {
 //deletes and order from the array and sends confirmation
 function destroy(req, res) {
   const { orderId } = req.params;
-  const index = orders.findIndex((order) => order.id === Number(orderId));
+  const index = orders.findIndex((order) => order.id === orderId);
   // `splice()` returns an array of the deleted elements, even if it is one element
   if (index > -1) {
     orders.splice(index, 1);

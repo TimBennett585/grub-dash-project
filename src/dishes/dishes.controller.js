@@ -77,7 +77,7 @@ function create(req, res) {
 function dishExists(req, res, next) {
   const { dishId } = req.params;
   console.log(dishId);
-  const foundDish = dishes.find((dish) => dish.id === Number(dishId));
+  const foundDish = dishes.find((dish) => dish.id === dishId);
   if (foundDish) {
     res.locals.dish = foundDish;
     return next();
@@ -111,7 +111,7 @@ module.exports = {
   create: [
     bodyDataHas("name"),
     bodyDataHas("description"),
-    bodyDataHas("price"),
+    //bodyDataHas("price"),
     bodyDataHas("image_url"),
     priceIsValidNumber,
     create,
@@ -123,7 +123,7 @@ module.exports = {
     matchDish,
     bodyDataHas("name"),
     bodyDataHas("description"),
-    bodyDataHas("price"),
+    //bodyDataHas("price"),
     bodyDataHas("image_url"),
     priceIsValidNumber,
     update,
